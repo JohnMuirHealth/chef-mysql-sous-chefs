@@ -1,5 +1,4 @@
 module MysqlCookbook
-#module chef-mysql-sous-chefsCookbook
   class MysqlConfig < MysqlBase
     resource_name :mysql_config
     provides :mysql_config
@@ -15,7 +14,6 @@ module MysqlCookbook
 
     require_relative 'helpers'
     include MysqlCookbook::HelpersBase
-    #include chef-mysql-sous-chefsCookbook::HelpersBase
 
     action :create do
       # hax because group property
