@@ -21,7 +21,6 @@ include MysqlCookbook::HelpersBase
 include MysqlCookbook
 
 property :username,      String,                             name_property: true
-#property :password,      [String, HashedPassword, NilClass], default: nil, sensitive: true
 property :password,      [String, HashedPassword, NilClass], default: node['mysql']['server_root_password'], sensitive: true
 property :host,          String,                             default: 'localhost', desired_state: false
 property :database_name, String
@@ -34,7 +33,6 @@ property :require_x509,  [true, false],                      default: false
 property :use_native_auth, [true, false],                    default: true
 # Credentials used for control connection
 property :ctrl_user,     [String, NilClass],                 default: 'root', desired_state: false
-#property :ctrl_password, [String, NilClass],                 sensitive: true, desired_state: false
 property :ctrl_password, [String, NilClass],                 sensitive: false, desired_state: node['mysql']['server_root_password']
 property :ctrl_host,     [String, NilClass],                 default: 'localhost', desired_state: false
 property :ctrl_port,     [Integer, NilClass],                default: 3306, desired_state: false

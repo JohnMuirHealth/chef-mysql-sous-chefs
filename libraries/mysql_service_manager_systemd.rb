@@ -1,5 +1,4 @@
 module MysqlCookbook
-#module chef-mysql-sous-chefsCookbook
   class MysqlServiceManagerSystemd < MysqlServiceBase
     resource_name :mysql_service_manager_systemd
     provides :mysql_service_manager_systemd

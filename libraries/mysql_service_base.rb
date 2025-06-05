@@ -1,6 +1,5 @@
 module MysqlCookbook
   class MysqlServiceBase < MysqlBase
-    #property :bind_address, String, desired_state: false
     property :bind_address, String, default: lazy { default_bind_address }, desired_state: false
     property :charset, String, default: 'utf8', desired_state: false
     property :data_dir, String, default: lazy { default_data_dir }, desired_state: false
@@ -12,7 +11,6 @@ module MysqlCookbook
     property :port, [String, Integer], default: '3306', desired_state: false
     property :socket, String, default: lazy { default_socket_file }, desired_state: false
     property :limit_no_file, [String, Integer], default: '1024', desired_state: false
-    #property :tmp_dir, String, desired_state: false
     property :tmp_dir, String, default: '/tmp', desired_state: false
 
     alias socket_file socket

@@ -312,7 +312,6 @@ EOSQL
     end
 
     def mysql_systemd
-      #return "/usr/libexec/#{mysql_name}-wait-ready $MAINPID" if v57plus && (el7? || el8? || fedora?)
       return "/usr/libexec/#{mysql_name}-wait-ready $MAINPID" if v57plus && (el7? || el8? || el9? || fedora?)
       return '/usr/bin/mysql-systemd-start' if platform_family?('rhel')
       return '/usr/share/mysql/mysql-systemd-start' if v57plus
@@ -365,7 +364,6 @@ EOSQL
       Chef::Log.debug("Control Hash: [#{ctrl.to_json}]\n")
       cmd = "/usr/bin/mysql -B -e \"#{raw_query}\""
       cmd << " --user=#{ctrl[:user]}" if ctrl && ctrl.key?(:user) && !ctrl[:user].nil?
-      #cmd << " -p#{ctrl[:password]}"  if ctrl && ctrl.key?(:password) && !ctrl[:password].nil?
       cmd << " --password=#{node['mysql']['server_root_password']}"
       cmd << " -h #{ctrl[:host]}"     if ctrl && ctrl.key?(:host) && !ctrl[:host].nil? && ctrl[:host] != 'localhost'
       cmd << " -P #{ctrl[:port]}"     if ctrl && ctrl.key?(:port) && !ctrl[:port].nil? && ctrl[:host] != 'localhost'
