@@ -30,7 +30,7 @@ module MysqlCookbook
           pid_file: new_resource.pid_file,
           scl_name: scl_name
         )
-        cookbook 'mysql'
+        cookbook 'chef-mysql-sous-chefs'
         action :create
       end
 

@@ -50,6 +50,11 @@ log-error                      = <%= @config.error_log %>
 <% if @config.include_dir %>
 !includedir <%= @config.include_dir %>
 <% end %>
+validate_password.mixed_case_count = 0
+validate_password.number_count = 0
+validate_password.policy = LOW
+validate_password.special_char_count = 0
+validate_password.length = 0
 
 [mysqld_safe]
 <% if @config.socket_file %>

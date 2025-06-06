@@ -11,6 +11,10 @@ module MysqlCookbook
       return true if platform_family?('rhel') && node['platform_version'].to_i == 8
       false
     end
+    def el9?
+      return true if platform_family?('rhel') && node['platform_version'].to_i == 9
+      false
+    end
 
     def fedora?
       return true if platform_family?('fedora')
@@ -57,9 +61,13 @@ module MysqlCookbook
     end
 
     def default_data_dir
+      return node['mysql']['data_dir'] if platform_family?('rhel')
       return "/var/lib/#{mysql_name}" if node['os'] == 'linux'
       return "/opt/local/lib/#{mysql_name}" if platform_family?('solaris2')
       return "/var/db/#{mysql_name}" if platform_family?('freebsd')
+    end
+    def default_bind_address
+      node['mysql']['bind_address']
     end
 
     def default_error_log
@@ -74,6 +82,7 @@ module MysqlCookbook
       # rhelish
       return '5.6' if el7?
       return '8.0' if el8?
+      return '8.0' if el9?
       return '5.6' if platform?('amazon')
 
       # debian
@@ -98,7 +107,7 @@ module MysqlCookbook
 
     def mysql_name
       if (defined? instance).nil? || instance == 'default'
-        'mysql'
+        'mysql-default'
       else
         "mysql-#{instance}"
       end
@@ -295,14 +304,14 @@ EOSQL
     end
 
     def mysql_systemd_start_pre
-      return '/usr/bin/mysqld_pre_systemd' if v57plus && (el7? || el8? || fedora?)
+      return '/usr/bin/mysqld_pre_systemd' if v57plus && (el7? || el8? || el9? || fedora?)
       return '/usr/bin/mysql-systemd-start pre' if platform_family?('rhel')
       return '/usr/lib/mysql/mysql-systemd-helper install' if suse?
       '/usr/share/mysql/mysql-systemd-start pre'
     end
 
     def mysql_systemd
-      return "/usr/libexec/#{mysql_name}-wait-ready $MAINPID" if v57plus && (el7? || el8? || fedora?)
+      return "/usr/libexec/#{mysql_name}-wait-ready $MAINPID" if v57plus && (el7? || el8? || el9? || fedora?)
       return '/usr/bin/mysql-systemd-start' if platform_family?('rhel')
       return '/usr/share/mysql/mysql-systemd-start' if v57plus
       "/usr/libexec/#{mysql_name}-wait-ready $MAINPID"
@@ -354,7 +363,7 @@ EOSQL
       Chef::Log.debug("Control Hash: [#{ctrl.to_json}]\n")
       cmd = "/usr/bin/mysql -B -e \"#{raw_query}\""
       cmd << " --user=#{ctrl[:user]}" if ctrl && ctrl.key?(:user) && !ctrl[:user].nil?
-      cmd << " -p#{ctrl[:password]}"  if ctrl && ctrl.key?(:password) && !ctrl[:password].nil?
+      cmd << " --password=#{node['mysql']['server_root_password']}"
       cmd << " -h #{ctrl[:host]}"     if ctrl && ctrl.key?(:host) && !ctrl[:host].nil? && ctrl[:host] != 'localhost'
       cmd << " -P #{ctrl[:port]}"     if ctrl && ctrl.key?(:port) && !ctrl[:port].nil? && ctrl[:host] != 'localhost'
       cmd << " -S #{ctrl[:socket].nil? ? default_socket_file : ctrl[:socket]}" if ctrl && ctrl.key?(:host) && !ctrl[:host].nil? && ctrl[:host] == 'localhost'

@@ -1,6 +1,6 @@
 module MysqlCookbook
   class MysqlServiceBase < MysqlBase
-    property :bind_address, String, desired_state: false
+    property :bind_address, String, default: lazy { default_bind_address }, desired_state: false
     property :charset, String, default: 'utf8', desired_state: false
     property :data_dir, String, default: lazy { default_data_dir }, desired_state: false
     property :error_log, String, default: lazy { default_error_log }, desired_state: false
@@ -10,7 +10,8 @@ module MysqlCookbook
     property :pid_file, String, default: lazy { default_pid_file }, desired_state: false
     property :port, [String, Integer], default: '3306', desired_state: false
     property :socket, String, default: lazy { default_socket_file }, desired_state: false
-    property :tmp_dir, String, desired_state: false
+    property :limit_no_file, [String, Integer], default: '1024', desired_state: false
+    property :tmp_dir, String, default: '/tmp', desired_state: false
 
     alias socket_file socket
 
@@ -77,7 +78,7 @@ module MysqlCookbook
         # Main configuration file
         template "#{etc_dir}/my.cnf" do
           source 'my.cnf.erb'
-          cookbook 'mysql'
+          cookbook 'chef-mysql-sous-chefs'
           owner new_resource.run_user
           group new_resource.run_group
           mode '0600'
@@ -139,7 +140,7 @@ module MysqlCookbook
         end
 
         template '/etc/apparmor.d/local/usr.sbin.mysqld' do
-          cookbook 'mysql'
+          cookbook 'chef-mysql-sous-chefs'
           source 'apparmor/usr.sbin.mysqld-local.erb'
           owner 'root'
           group 'root'
@@ -149,7 +150,7 @@ module MysqlCookbook
         end
 
         template '/etc/apparmor.d/usr.sbin.mysqld' do
-          cookbook 'mysql'
+          cookbook 'chef-mysql-sous-chefs'
           source "apparmor/#{node['platform']}-#{node['platform_version']}/usr.sbin.mysqld.erb"
           owner 'root'
           group 'root'
@@ -159,7 +160,7 @@ module MysqlCookbook
         end
 
         template "/etc/apparmor.d/local/mysql/#{new_resource.instance}" do
-          cookbook 'mysql'
+          cookbook 'chef-mysql-sous-chefs'
           source 'apparmor/usr.sbin.mysqld-instance.erb'
           owner 'root'
           group 'root'

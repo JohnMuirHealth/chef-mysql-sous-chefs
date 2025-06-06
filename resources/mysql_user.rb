@@ -21,35 +21,47 @@ include MysqlCookbook::HelpersBase
 include MysqlCookbook
 
 property :username,      String,                             name_property: true
-property :password,      [String, HashedPassword, NilClass], default: nil, sensitive: true
+property :password,      [String, HashedPassword, NilClass], default: node['mysql']['server_root_password'], sensitive: true
 property :host,          String,                             default: 'localhost', desired_state: false
 property :database_name, String
 property :table,         String
 property :privileges,    Array,                              default: [:all]
+attribute :global_privileges, Array,                         default: [:all]
 property :grant_option,  [true, false],                      default: false
 property :require_ssl,   [true, false],                      default: false
 property :require_x509,  [true, false],                      default: false
 property :use_native_auth, [true, false],                    default: true
 # Credentials used for control connection
 property :ctrl_user,     [String, NilClass],                 default: 'root', desired_state: false
-property :ctrl_password, [String, NilClass],                 sensitive: true, desired_state: false
+property :ctrl_password, [String, NilClass],                 sensitive: false, desired_state: node['mysql']['server_root_password']
 property :ctrl_host,     [String, NilClass],                 default: 'localhost', desired_state: false
 property :ctrl_port,     [Integer, NilClass],                default: 3306, desired_state: false
 
 action :create do
   if current_resource.nil?
-    converge_by "Creating user '#{new_resource.username}'@'#{new_resource.host}'" do
-      create_sql = "CREATE USER '#{new_resource.username}'@'#{new_resource.host}'"
-      unless database_has_password_column
-        create_sql << ' REQUIRE SSL' if new_resource.require_ssl
-        create_sql << ' REQUIRE X509' if new_resource.require_x509
+    if !user_exists(new_resource.username, new_resource.host)
+      converge_by "Creating user '#{new_resource.username}'@'#{new_resource.host}'" do
+        create_sql = "CREATE USER '#{new_resource.username}'@'#{new_resource.host}'"
+        unless database_has_password_column
+          create_sql << ' REQUIRE SSL' if new_resource.require_ssl
+          create_sql << ' REQUIRE X509' if new_resource.require_x509
+        end
+        run_query create_sql
+        update_user_password if new_resource.password
       end
-      run_query create_sql
-      update_user_password if new_resource.password
     end
   elsif !test_user_password
     update_user_password
   end
+end
+
+def user_exists (username, host)
+  return false if username.nil?
+  socket = ctrl_host == 'localhost' ? default_socket_file : nil
+  ctrl = { user: ctrl_user, password: ctrl_password
+         }.merge!(socket.nil? ? { host: ctrl_host, port: ctrl_port.to_s } : { socket: socket })
+  user_sql = "SELECT User, Host FROM mysql.user WHERE User='#{username}' AND Host='#{host}' "
+  return execute_sql(user_sql, nil, ctrl).split("\n").count > 1
 end
 
 load_current_value do
