@@ -1,4 +1,4 @@
-name              'mysql'
+name              'chef-mysql-sous-chefs'
 maintainer        'Sous Chefs'
 maintainer_email  'help@sous-chefs.org'
 license           'Apache-2.0'
